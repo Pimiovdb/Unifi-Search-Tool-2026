@@ -1,4 +1,4 @@
-# UniFi MAC to Site Lookup GUI
+# UniFi MAC Search Tool
 
 A small Python/Tkinter desktop tool that searches the UniFi Site Manager API for a UniFi device by MAC address and shows the host/controller and site where the device belongs.
 
