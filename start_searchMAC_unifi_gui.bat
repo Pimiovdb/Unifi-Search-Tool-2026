@@ -3,10 +3,10 @@ cd /d "%~dp0"
 
 py -c "import requests" >nul 2>nul
 if errorlevel 1 (
-    echo requests ontbreekt; installeren uit requirements_unifi_gui.txt...
+    echo requests is missing; installing from requirements_unifi_gui.txt...
     py -m pip install -r requirements_unifi_gui.txt
     if errorlevel 1 (
-        echo Installatie mislukt.
+        echo Installation failed.
         pause
         exit /b 1
     )
