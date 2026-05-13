@@ -1,22 +1,47 @@
 # UniFi MAC Search Tool
 
-A small Python/Tkinter desktop tool that searches the UniFi Site Manager API for a UniFi device by MAC address and shows the host/controller and site where the device belongs.
+A small Windows desktop tool for finding the UniFi host/controller and site that belong to a specific device MAC address.
 
-The tool is useful when you manage multiple UniFi hosts, CloudKeys, or sites and want to quickly map a device MAC address to the correct UniFi site.
+The tool searches the UniFi Site Manager API and tries to map the entered MAC address to the correct UniFi site. It is useful when you manage multiple UniFi hosts, CloudKeys, controllers, or sites.
+
+## Download latest release
+
+The recommended way to use this tool is to download the latest Windows release:
+
+[Download the latest release](https://github.com/Pimiovdb/Unifi-Search-Tool-2026/releases/latest)
+
+Download the Windows release asset, extract it if needed, and run the `.exe` file.
+
+No Python installation is required when using the release version.
+
+## Requirements
+
+To use the application, you need:
+
+- A UniFi Site Manager API key.
+- Access to `https://api.ui.com`.
+- Permission to read the UniFi hosts/controllers and sites you want to search.
+
+The API key can be entered in the application.
+
+The application does not save the API key.
 
 ## Features
 
 - Search UniFi devices by MAC address.
-- Accepts common MAC address formats, for example:
+- Accepts common MAC address formats, including:
   - `24:5a:4c:9d:76:ec`
   - `24-5A-4C-9D-76-EC`
   - `245A4C9D76EC`
-- Uses the UniFi Site Manager API endpoint `/v1/devices` first.
-- Tries to resolve the underlying UniFi Network site through the connector Network Integration API.
-- Includes a fallback scan across available hosts/controllers and sites.
-- Shows useful device information such as:
-  - host/controller name and ID
-  - site name and ID
+- Uses the UniFi Site Manager API.
+- Tries to resolve the matching UniFi host/controller.
+- Tries to resolve the underlying UniFi Network site.
+- Includes fallback searching across available hosts/controllers and sites.
+- Shows useful device information, including:
+  - host/controller name
+  - host/controller ID
+  - site name
+  - site ID
   - device name
   - model
   - MAC address
@@ -24,31 +49,54 @@ The tool is useful when you manage multiple UniFi hosts, CloudKeys, or sites and
   - status
   - last seen timestamp, when available
   - device ID
-- Optional debug output for troubleshooting API or permission issues.
-- API key can be entered manually or loaded from the `UNIFI_API_KEY` environment variable.
-- The API key is not saved by the application.
+- Includes optional debug output for troubleshooting API or permission issues.
 
-## Project files
+## How it works
 
-```text
-.
-├── searchMAC_Unifi_GUI_ENG.pyw       # Main GUI application
-├── start_searchMAC_unifi_gui.bat     # Windows launcher
-├── requirements_unifi_gui.txt        # Python dependency list
-└── README.md                         # Project documentation
-```
+The application follows this lookup flow:
 
-## Requirements
+1. Normalize the entered MAC address.
+2. Search the UniFi Site Manager device list.
+3. Identify the host/controller where the device is known.
+4. Try to connect to the underlying UniFi Network API for that host/controller.
+5. Retrieve available sites.
+6. Search the device lists inside the available sites.
+7. Show the matching host/controller and site information.
+8. If the first lookup does not return enough information, perform a fallback scan across available hosts/controllers and sites.
 
-- Python 3.9 or newer recommended.
-- A UniFi Site Manager API key.
-- Network/API access to `https://api.ui.com`.
-- Python package:
-  - `requests>=2.31.0`
+## Troubleshooting
 
-Tkinter is used for the graphical interface and is included with most standard Python installations.
+### API key does not work
 
-## Installation
+Check that the API key is valid and has access to the required UniFi Site Manager resources.
+
+Also check that the UniFi host/controller is visible in UniFi Site Manager.
+
+### HTTP 401 or 403
+
+This usually means the API key is missing, invalid, expired, or does not have enough permissions.
+
+Create or update the API key in UniFi Site Manager and try again.
+
+### Device not found
+
+Check the following:
+
+- The MAC address is correct.
+- The device still exists in UniFi Network.
+- The device belongs to a host/controller linked to UniFi Site Manager.
+- The host/controller is online.
+- The API key has access to the required host/controller and site.
+
+### Site name is missing
+
+The device may be visible in UniFi Site Manager, but the underlying UniFi Network site information may not be available through the API.
+
+Enable debug output and run the lookup again to see more details.
+
+## Build from source
+
+This section is only for developers or users who want to build the Windows executable themselves.
 
 Clone the repository:
 
@@ -57,139 +105,35 @@ git clone https://github.com/Pimiovdb/Unifi-Search-Tool-2026.git
 cd Unifi-Search-Tool-2026
 ```
 
-Install the required Python package:
-
-```bash
-py -m pip install -r requirements_unifi_gui.txt
-```
-
-On Linux or macOS, use `python3` instead of `py` when needed:
-
-```bash
-python3 -m pip install -r requirements_unifi_gui.txt
-```
-
-## Usage on Windows
-
-The easiest way to start the application on Windows is to run:
-
-```bat
-start_searchMAC_unifi_gui.bat
-```
-
-The batch file checks whether `requests` is installed. If it is missing, it installs the package from `requirements_unifi_gui.txt` and then starts the GUI.
-
-You can also start the application manually:
-
-```bat
-py searchMAC_Unifi_GUI_ENG.pyw
-```
-
-## Usage on Linux or macOS
-
-Run the Python file directly:
-
-```bash
-python3 searchMAC_Unifi_GUI_ENG.pyw
-```
-
-Depending on your Python installation, you may need to install Tkinter separately. For example, on Debian/Ubuntu-based systems:
-
-```bash
-sudo apt install python3-tk
-```
-
-## Using an environment variable for the API key
-
-The application reads the `UNIFI_API_KEY` environment variable when it starts. This is optional, but useful if you do not want to paste the key every time.
-
-### Windows PowerShell
+Create a virtual environment:
 
 ```powershell
-$env:UNIFI_API_KEY="your-api-key-here"
-py searchMAC_Unifi_GUI_ENG.pyw
+py -m venv .venv
+.\.venv\Scripts\activate
 ```
 
-### Windows Command Prompt
+Install the required packages:
 
-```cmd
-set UNIFI_API_KEY=your-api-key-here
-py searchMAC_Unifi_GUI_ENG.pyw
+```powershell
+python -m pip install --upgrade pip
+pip install -r requirements_unifi_gui.txt
+pip install pyinstaller
 ```
 
-### Linux/macOS
+Build the Windows executable:
 
-```bash
-export UNIFI_API_KEY="your-api-key-here"
-python3 searchMAC_Unifi_GUI_ENG.pyw
+```powershell
+py -m PyInstaller --noconfirm --clean --onefile --windowed --name "UniFi-Search-Tool" searchMAC_Unifi_GUI_ENG.pyw
 ```
 
-## How it works
-
-The application follows this lookup flow:
-
-1. Normalize the entered MAC address by removing separators and converting it to lowercase.
-2. Search the UniFi Site Manager `/v1/devices` endpoint.
-3. If the device is found on a host/controller, try to open the Network Integration API through the UniFi cloud connector.
-4. Retrieve sites from the host/controller.
-5. Search the device list for each site.
-6. If the filtered lookup does not return a result, perform a deeper scan using full device lists.
-7. If the device is still not found, fall back to scanning all available hosts/controllers and their sites.
-
-## Example output
+The built executable will be created in:
 
 ```text
-Searching for MAC: 24:5a:4c:9d:76:ec
-Device found via /v1/devices on host/controller: Example CloudKey
-Searching within underlying sites...
-
-Found UniFi device:
---------------------------------------------------------------------------------
-Host/controller: Example CloudKey
-Host ID: abc123
-Site name: Main Office
-Site ID: def456
-
-Name: UAP-Office-01
-Model: U7-Pro
-MAC: 24:5a:4c:9d:76:ec
-IP: 192.168.1.20
-Status: online
-Last seen: 2026-05-13T10:00:00Z
-Device ID: xyz789
-```
-
-## Troubleshooting
-
-### Access denied: HTTP 401 or 403
-
-Check that the API key is correct and has sufficient permissions for the UniFi Site Manager and the relevant hosts/controllers.
-
-### Device not found
-
-Check the following:
-
-- The entered MAC address is correct.
-- The device still exists in the UniFi Network device list.
-- The host/controller is online.
-- The host/controller is linked to UniFi Site Manager.
-- The API key has access to the required host/controller and site.
-
-### Site name is not found
-
-The device may be visible through Site Manager, but the underlying Network Integration API may not be reachable or the API key may not have enough permissions to read the site/device list.
-
-Enable the `debug` checkbox and run the lookup again to see more details.
-
-### Tkinter is missing
-
-On some Linux installations, Tkinter is not installed by default. Install it with your package manager, for example:
-
-```bash
-sudo apt install python3-tk
+dist\UniFi-Search-Tool.exe
 ```
 
 ## Disclaimer
 
-This project is not affiliated with, endorsed by, or supported by Ubiquiti Inc. or UniFi. Use it at your own risk and test it in your own environment.
+This project is not affiliated with, endorsed by, or supported by Ubiquiti Inc. or UniFi.
 
+Use it at your own risk and test it in your own environment.
