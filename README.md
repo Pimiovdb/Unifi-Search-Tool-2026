@@ -53,8 +53,8 @@ Tkinter is used for the graphical interface and is included with most standard P
 Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/<your-repository>.git
-cd <your-repository>
+git clone https://github.com/Pimiovdb/Unifi-Search-Tool-2026.git
+cd Unifi-Search-Tool-2026
 ```
 
 Install the required Python package:
